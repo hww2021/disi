@@ -67,4 +67,20 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.container {
+  margin-top: 20px;
+  .el-table__row:hover button {
+    background-color: #f5f7fa;
+    color: #000;
+  }
+  .el-table__cell {
+    button {
+      border: 0;
+    }
+    button:hover {
+      background-color: #ebeef5;
+    }
+  }
+}
+</style>

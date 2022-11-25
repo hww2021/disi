@@ -1,8 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import login from "./modules/login.js";
-import users from "./users.js";
-import roles from "./roles.js";
+import users from "./modules/users.js";
+import roles from "./modules/roles.js";
 import global from "./modules/global.js";
 
 Vue.use(Vuex);

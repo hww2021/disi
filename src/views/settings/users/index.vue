@@ -12,7 +12,7 @@ export default {
   name: "Users",
   components: { UserPanel, UserList },
   data() {
-    return { userData: [] };
+    return {};
   },
   props: [],
   computed: {},

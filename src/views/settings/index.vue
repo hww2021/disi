@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { mapState, mapMutations, mapActions } from "vuex";
 export default {
   name: "",
   components: {},
@@ -14,8 +15,13 @@ export default {
   props: [],
   computed: {},
   watch: {},
-  created() {},
-  methods: {},
+  created() {
+    this.getRoleData();
+    this.getSiteData();
+  },
+  methods: {
+    ...mapActions("global", ["getRoleData", "getSiteData"]),
+  },
 };
 </script>
 

@@ -7,7 +7,12 @@
           :fetch-suggestions="querySearchAsync"
           placeholder="请输入内容"
           @select="handleSelect"
-        ></el-autocomplete
+          :trigger-on-focus="false"
+        >
+          <i
+            slot="prefix"
+            class="el-input__icon el-icon-search"
+          ></i> </el-autocomplete
       ></el-col>
       <el-col :span="6"></el-col>
     </el-row>
