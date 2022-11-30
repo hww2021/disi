@@ -44,10 +44,10 @@ const routes = [
             meta: { title: "角色管理", hide: true },
           },
           {
-            path: "/settings/add:id",
+            path: "/settings/add/:id",
             name: "AddRole",
             component: () => import("@/views/settings/roles/AddRole.vue"),
-            meta: { title: "添加角色" },
+            meta: { title: "添加角色", showHeader: true },
           },
         ],
       },

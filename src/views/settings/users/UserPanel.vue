@@ -26,9 +26,15 @@
         </el-autocomplete></el-col
       >
       <el-col :span="3">
-        <el-select v-model="site" filterable placeholder="请选择所属站点">
+        <el-select
+          v-model="params.site"
+          filterable
+          placeholder="请选择所属站点"
+          clearable
+          @clear="handleClear('site')"
+        >
           <el-option
-            v-for="item in siteData"
+            v-for="item in newSiteData"
             :key="item.value"
             :label="item.label"
             :value="item.value"
@@ -37,9 +43,15 @@
         </el-select>
       </el-col>
       <el-col :span="3">
-        <el-select v-model="role" filterable placeholder="请选择角色">
+        <el-select
+          v-model="params.role"
+          filterable
+          placeholder="请选择角色"
+          clearable
+          @clear="handleClear('role')"
+        >
           <el-option
-            v-for="item in roleData"
+            v-for="item in newRoleData"
             :key="item.value"
             :label="item.label"
             :value="item.value"
@@ -47,8 +59,14 @@
           </el-option>
         </el-select>
       </el-col>
-      <el-col :span="6">
-        <el-select v-model="status" filterable placeholder="请选择状态">
+      <el-col :span="3">
+        <el-select
+          v-model="params.status"
+          filterable
+          placeholder="请选择状态"
+          clearable
+          @clear="handleClear('status')"
+        >
           <el-option
             v-for="item in statusData"
             :key="item.value"
@@ -58,40 +76,82 @@
           </el-option>
         </el-select>
       </el-col>
-      <el-col :span="6"></el-col>
+      <el-col :span="1">
+        <el-button @click="handleAdd">新增</el-button>
+      </el-col>
     </el-row>
+    <add-user :visible.sync="isShow" />
   </div>
 </template>
 
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
 import * as api from "@/api/users.js";
+import AddUser from "@/views/settings/users/AddUser.vue";
 export default {
   name: "",
-  components: {},
+  components: { AddUser },
   data() {
     return {
       name: "",
       restaurants: [],
       timeout: null,
-      siteData: [],
-      site: "",
-      roleData: [],
-      role: "",
       statusData: [
-        { value: "", label: "全部" },
+        { value: "", label: "状态：全部" },
         { value: 1, label: "启用" },
         { value: 0, label: "停用" },
       ],
-      status: "",
       avatar: require("@/assets/name.png"),
+      isShow: false,
     };
   },
   props: [],
-  computed: {},
+  computed: {
+    ...mapState("global", ["siteData", "roleData"]),
+    ...mapState("users", ["params"]),
+    newSiteData() {
+      const newSiteData =
+        this.siteData.children && this.siteData.children.length
+          ? this.siteData.children.map((item) => ({
+              label: item.name,
+              value: item.id,
+            }))
+          : [];
+      newSiteData.unshift({ value: "", label: "所属站点：全部" });
+      return newSiteData;
+    },
+    site() {
+      return this.params.site;
+    },
+    newRoleData() {
+      const newRoleData = this.roleData.length
+        ? this.roleData.map((item) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        : [];
+      newRoleData.unshift({ value: "", label: "角色：全部" });
+      return newRoleData;
+    },
+    role() {
+      return this.params.role;
+    },
+    status() {
+      return this.params.status;
+    },
+  },
   watch: {
-    name(v) {
-      console.log(v);
+    site(v) {
+      this.setParams({ site: v, currentPage: 1 });
+      this.getUserData();
+    },
+    role(v) {
+      this.setParams({ role: v, currentPage: 1 });
+      this.getUserData();
+    },
+    status(v) {
+      this.setParams({ status: v, currentPage: 1 });
+      this.getUserData();
     },
   },
   created() {},
@@ -124,6 +184,9 @@ export default {
     handleClear(item) {
       this.setParams({ [item]: "", currentPage: 1 });
       this.getUserData();
+    },
+    handleAdd() {
+      this.isShow = true;
     },
   },
 };

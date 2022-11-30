@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import * as api from "@/api/login.js";
 import { mapState, mapMutations, mapActions } from "vuex";
 export default {
   name: "sidebar",
@@ -84,11 +85,17 @@ export default {
     handleClose(key, keyPath) {
       console.log(key, keyPath);
     },
-    handleCommand(command) {
+    async handleCommand(command) {
       if (command === "logout") {
-        localStorage.removeItem("token");
-        this.setIsLogin(false);
-        this.$router.replace({ name: "Login" });
+        try {
+          await api.logout();
+          localStorage.removeItem("token");
+          this.setIsLogin(false);
+          this.$router.replace({ name: "Login" });
+          this.$message.success("退出登录成功！");
+        } catch (err) {
+          console.log(err.message);
+        }
       }
     },
   },

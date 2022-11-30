@@ -9,7 +9,7 @@ const getters = {};
 
 const mutations = {
   setRoleData(state, roleData) {
-    state.roleData = state.roleData;
+    state.roleData = roleData;
   },
   setSiteData(state, siteData) {
     state.siteData = siteData;

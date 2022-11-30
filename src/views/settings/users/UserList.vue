@@ -1,11 +1,14 @@
 <template>
   <div class="container">
     <el-table
+      ref="multipleTable"
       :data="newUserData"
       style="width: 100%"
       height="720px"
       :header-cell-style="headerStyle"
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column type="selection" width="55"> </el-table-column>
       <el-table-column prop="name" label="姓名" width=""> </el-table-column>
       <el-table-column prop="username" label="账号" width=""> </el-table-column>
       <el-table-column prop="phone" label="手机号" width=""> </el-table-column>
@@ -18,6 +21,8 @@
           <el-switch
             v-model="scope.row.status"
             :active-text="scope.row.status ? '启用' : '停用'"
+            @click.native.prevent="changeStatus(scope.row)"
+            disabled
           >
           </el-switch>
         </template>
@@ -39,8 +44,8 @@
     </el-table>
     <div class="table-footer">
       <div>
-        <el-button>批量启用</el-button>
-        <el-button>批量停用</el-button>
+        <el-button @click="batchChangeStatus('activate')">批量启用</el-button>
+        <el-button @click="batchChangeStatus('deactivate')">批量停用</el-button>
       </div>
       <el-pagination
         @size-change="handleSizeChange"
@@ -53,16 +58,23 @@
       >
       </el-pagination>
     </div>
+    <add-user :visible.sync="isShow" :row="row" />
   </div>
 </template>
 
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
+import * as api from "@/api/users.js";
+import AddUser from "@/views/settings/users/AddUser.vue";
 export default {
   name: "",
-  components: { userData: [] },
+  components: { AddUser },
   data() {
-    return {};
+    return {
+      multipleSelection: [],
+      isShow: false,
+      row: {},
+    };
   },
   props: [],
   computed: {
@@ -78,7 +90,11 @@ export default {
   },
   methods: {
     ...mapMutations("users", ["setParams"]),
-    ...mapActions("users", ["getUserData"]),
+    ...mapActions("users", [
+      "getUserData",
+      "handleIsActive",
+      "handleIsBatchActive",
+    ]),
     handleSizeChange(val) {
       this.setParams({ pageSize: val });
       this.getUserData();
@@ -87,8 +103,77 @@ export default {
       this.setParams({ currentPage: val });
       this.getUserData();
     },
-    edit(row) {},
-    del(row) {},
+    changeStatus(row) {
+      if (!row.name) {
+        this.$message.error("请补充姓名后再操作！");
+        return;
+      }
+      this.$confirm(`确定${row.status ? "停用" : "启用"}该用户？`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          this.handleIsActive(row);
+        })
+        .catch(() => {});
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    batchChangeStatus(type) {
+      const names = this.multipleSelection.map((item) => item.name);
+      if (names.includes("")) {
+        this.$message.error("请补充姓名后再操作！");
+        return;
+      }
+      this.$confirm(
+        `确定${type === "activate" ? "启用" : "停用"}选中的用户？`,
+        "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
+      )
+        .then(async () => {
+          const ids = this.multipleSelection.map((item) => item.id);
+          const params = { type: type, id: ids };
+          console.log("params", params);
+          this.handleIsBatchActive(params);
+        })
+        .catch(() => {});
+    },
+    edit(row) {
+      this.isShow = true;
+      this.row = { ...row };
+    },
+    del(row) {
+      this.$confirm("确认删除该用户?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          try {
+            await api.del(row.id);
+            this.$message({
+              type: "success",
+              message: "删除成功!",
+            });
+            this.getUserData();
+          } catch (err) {
+            this.$message.error(err.message);
+            console.log(err.message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
 
     convert(userData, siteData) {
       const map = new Map(
@@ -134,6 +219,19 @@ export default {
     display: flex;
     margin-top: 20px;
     justify-content: space-between;
+  }
+  .el-switch.is-disabled {
+    opacity: 1;
+  }
+  .el-switch.is-disabled {
+    /deep/ .el-switch__core {
+      cursor: pointer !important;
+    }
+  }
+  .el-switch.is-disabled {
+    /deep/.el-switch__label {
+      cursor: pointer !important;
+    }
   }
 }
 </style>

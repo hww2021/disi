@@ -1,7 +1,18 @@
 <template>
   <div class="container">
-    <el-table :data="data" style="width: 100%">
-      <el-table-column prop="name" label="角色名称" width=""> </el-table-column>
+    <el-table
+      :data="roleData"
+      style="width: 100%"
+      :header-cell-style="headerStyle"
+    >
+      <el-table-column prop="name" label="角色名称" width="">
+        <template slot-scope="scope">
+          <div>
+            <div>{{ scope.row.name }}</div>
+            <div class="note">{{ scope.row.note }}</div>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="userCount" label="分配用户数" width="">
       </el-table-column>
       <el-table-column prop="modifier" label="修改人" width="">
@@ -26,11 +37,12 @@
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-      :current-page="currentPage"
+      :current-page="params.currentPage"
       :page-sizes="[10, 30, 50, 100]"
-      :page-size="pageSize"
+      :page-size="params.pageSize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
+      style="margin-top: 20px; text-align: right"
     >
     </el-pagination>
   </div>
@@ -38,30 +50,63 @@
 
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
+import * as api from "@/api/roles.js";
 export default {
   name: "",
   components: {},
   data() {
-    return {
-      data: [],
-      currentPage: 1,
-      pageSize: 10,
-      total: 0,
-    };
+    return {};
   },
   props: [],
-  computed: {},
+  computed: {
+    ...mapState("roles", ["roleData", "total", "params"]),
+  },
   watch: {},
-  created() {},
+  created() {
+    this.getRoleData();
+  },
   methods: {
+    ...mapMutations("roles", ["setParams"]),
+    ...mapActions("roles", ["getRoleData"]),
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
+      this.setParams({ pageSize: val });
+      this.getRoleData();
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
+      this.setParams({ currentPage: val });
+      this.getRoleData();
     },
-    edit(row) {},
-    del(row) {},
+    headerStyle() {
+      return "background-color:#fafafa";
+    },
+    edit(row) {
+      this.$router.push({ name: "AddRole", params: { id: row.id } });
+    },
+    del(row) {
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          try {
+            await api.del(row.id);
+            this.getRoleData();
+            this.$message({
+              type: "success",
+              message: "删除成功!",
+            });
+          } catch (err) {
+            console.log(err.message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
   },
 };
 </script>
@@ -81,6 +126,10 @@ export default {
     button:hover {
       background-color: #ebeef5;
     }
+  }
+  .note {
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 12px;
   }
 }
 </style>
